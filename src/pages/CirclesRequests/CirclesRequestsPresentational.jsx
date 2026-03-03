@@ -1,0 +1,123 @@
+import { Link } from "react-router-dom";
+import { Check, X, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+function CirclesRequestsPresentational({
+    requests,
+    loading,
+    onAccept,
+    onCancel,
+    requestType,
+    setRequestType,
+    actionLoading // <-- receive loading state
+}) {
+    const { t } = useTranslation();
+    return (
+        <div className="pt-paddingTop bg-gradient-to-b from-bg-primary to-bg-secondary  h-screen w-full max-w-full mx-auto pr-2 pl-2 pb-2">
+            <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-3 px-2">
+                <h2 className="text-xl md:text-2xl font-bold text-primary">
+                    {t("Circle Requests")}
+                </h2>
+                <div className="flex gap-2 bg-main  rounded-full p-1 shadow">
+                    {["join-request", "invitation"].map((type) => (
+                        <button
+                            key={type}
+                            className={`px-4 py-1 rounded-full font-semibold transition-all border
+                                ${requestType === type
+                                    ? "bg-primary text-text shadow"
+                                    : "bg-main text-primary border-primary hover:bg-primary/10"}
+                            `}
+                            onClick={() => setRequestType(type)}
+                        >
+                            {type === "join-request" ? t("Join Requests") : t("Invitations")}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="flex justify-center py-12">
+                    <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                </div>
+            ) : (
+                <div className="bg-gradient-to-b from-bg-primary to-bg-secondary  backdrop-blur-sm rounded-xl border border-primary overflow-x-auto w-full">
+                    {requests.length === 0 ? (
+                        <div className="text-center py-12 px-4">
+                            <div className="bg-main/80 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow">
+                                <span className="text-2xl">📭</span>
+                            </div>
+                            <h3 className="text-lg font-medium text-primary">
+                                {requestType === "join-request"
+                                    ? t("No join requests yet")
+                                    : t("No pending invitations")}
+                            </h3>
+                            <p className="mt-1 text-text max-w-md mx-auto">
+                                {requestType === "join-request"
+                                    ? t("Users will appear here when they request to join your circles")
+                                    : t("You'll see invitations here when you're invited to circles")}
+                            </p>
+                        </div>
+                    ) : (
+                        <ul className="divide-y divide-primary/30 w-full">
+                            {requests.map((req) => (
+                                <li key={req.id} className="hover:bg-primary/10 transition-colors duration-200">
+                                    <div className="flex flex-col md:flex-row items-start md:items-center p-4 w-full">
+                                        <div className="flex-1 min-w-0 ltr:mr-4 rtl:ml-4">
+                                            <div className="flex flex-wrap items-baseline gap-1.5 mb-1.5">
+                                                <Link
+                                                    to={`/profile/${requestType === "invitation"
+                                                        ? req.inviterId
+                                                        : req.requesterId
+                                                        }`}
+                                                    className="font-semibold text-primary hover:text-text hover:underline truncate max-w-[120px] sm:max-w-none"
+                                                >
+                                                    {requestType === "join-request"
+                                                        ? req.requesterUsername
+                                                        : req.inviterUsername}
+                                                </Link>
+                                                <span className="text-text text-sm hidden sm:inline">
+                                                    {requestType === "join-request"
+                                                        ? t("requested to join")
+                                                        : `${t("invited you to")}`}
+                                                </span>
+                                                <Link
+                                                    to={`/circles/${req.circleId}`}
+                                                    className="font-semibold text-primary hover:text-text hover:underline truncate max-w-[120px] sm:max-w-none"
+                                                >
+                                                    {req.circleName}
+                                                </Link>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2 mt-2 md:mt-0">
+                                            <button
+                                                className="p-2 rounded-full bg-green-500/10 hover:bg-green-500/20 text-green-400 transition-colors"
+                                                onClick={() => onAccept(req.id)}
+                                                aria-label={t("Accept request")}
+                                                disabled={actionLoading?.[req.id] === "accept"}
+                                            >
+                                                {actionLoading?.[req.id] === "accept"
+                                                    ? <Loader2 className="animate-spin w-4 h-4" />
+                                                    : <Check size={18} strokeWidth={2.5} />}
+                                            </button>
+                                            <button
+                                                className="p-2 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors"
+                                                onClick={() => onCancel(req.id)}
+                                                aria-label={t("Decline request")}
+                                                disabled={actionLoading?.[req.id] === "cancel"}
+                                            >
+                                                {actionLoading?.[req.id] === "cancel"
+                                                    ? <Loader2 className="animate-spin w-4 h-4" />
+                                                    : <X size={18} strokeWidth={2.5} />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
+export default CirclesRequestsPresentational;
